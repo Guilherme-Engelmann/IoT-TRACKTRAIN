@@ -1,7 +1,7 @@
 #include <Wifi.h>
 
-const String SSID = "nome_da_rede";
-const String PASS = "senha_da_rede";
+const String SSID = "FIESC_IOT_EDU";
+const String PASS = "8120gv08";
 
 void setup() {
   Serial.begin(115200);
