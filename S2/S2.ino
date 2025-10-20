@@ -3,7 +3,7 @@
 const String SSID = "FIESC_IOT_EDU";
 const String PASS = "8120gv08";
 
-void setup() {git
+void setup() {
   Serial.begin(115200);
   Serial.println("Conectando ao WiFi");
   WiFi.begin(SSID,PASS);
