@@ -12,12 +12,15 @@ const String URL    = "test.mosquitto.org";
 const int PORT      = 1883;
 const String USR    = "";
 const String broker_PASS   = "";
-const String Topic  = "DSM1";
+const String MyTopic  = "Allyson Schaedler Brinkerhoff";
+const String OtherTopic  = "Allyson Schaedler Brinkerhoff";
+
 
 
 
 void setup() {
   Serial.begin(115200);
+  pinMode(2, OUTPUT);
   Serial.println("Conectando ao WiFi");
   WiFi.begin(SSID,PASS);
   while(WiFi.status() != WL_CONNECTED){
@@ -34,18 +37,43 @@ void setup() {
     Serial.print(".");
     delay(200);
   }
+  mqtt.subscribe(MyTopic.c_str());
+  mqtt.setCallback(callback);
   Serial.println("\nConectando com sucesso ao broker !");
 }
 
 
 void loop() {
-  String mensagem = "Allyson: "; //mudar p/ nome de vcs
-  mensagem += "alguma coisa";
-  
-  mqtt.publish(Topic.c_str(),mensagem.c_str());
+  String mensagem = "Allyson Schaedler Brinkerhoff: "; //mudar p/ nome de vcs
+  if (Serial.available()>0){
+  mensagem += Serial.readStringUntil('\n');
+  mqtt.publish(OtherTopic.c_str(),mensagem.c_str());
+  }
   mqtt.loop();
   delay(1000);
 }
+
+void callback(char * topic, byte* payload, unsigned int length){
+  String mensagem = "";
+  for(int i = 0; i < length; i++){
+    mensagem += (char)payload[i];
+  }
+  Serial.print("Recebido: ");
+  Serial.println(mensagem);
+
+   if(mensagem == "HIGH") {
+    Serial.println("Ligado e Conectado");
+    digitalWrite(2, HIGH);
+  } else {
+    Serial.println("Desligado e Fracasso");
+    digitalWrite(2, LOW);
+  }
+  digitalWrite(2, HIGH);
+  delay(1000);
+  digitalWrite(2, LOW);
+  delay(1000);
+}
+
 
 
   // put your main code here, to run repeatedly:
