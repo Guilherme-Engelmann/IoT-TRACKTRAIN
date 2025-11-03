@@ -1,17 +1,19 @@
-#include <WiFi.h>
+#include <WiFiClientSecure.h>
 #include <PubSubClient.h>
 
-WiFiClient client;
+WiFiClientSecure client;
 PubSubClient mqtt(client);
 
-const String SSID = "FIESC_IOT_EDU";
+const String SSID = "";
 const String PASS = "8120gv08";
 
 //constantes p/ broker
-const String URL    = "test.mosquitto.org";
-const int PORT      = 1883;
+const String URL    = "570f551f5406454bb50ec90a421ce6ae.s1.eu.hivemq.cloud";
+const int PORT      = "8883";
 const String USR    = "";
-const String broker_PASS   = "";
+const String broker_user   = "Placa_2_Allyson" ;
+const String broker_PASS   = "Placa_2_Allyson";
+
 const String MyTopic  = "Allyson Schaedler Brinkerhoff";
 const String OtherTopic  = "Allyson Schaedler Brinkerhoff";
 
@@ -28,6 +30,7 @@ void setup() {
     delay(200);
   }
   Serial.println("\nConectado com sucesso!");
+  Client.setinsecure();
   Serial.println("Conectando ao Broker");
   mqtt.setServer(URL.c_str(),PORT);
   while(!mqtt.connected()){
@@ -50,7 +53,7 @@ void loop() {
   mqtt.publish(OtherTopic.c_str(),mensagem.c_str());
   }
   mqtt.loop();
-  delay(1000);
+  delay(2000);
 }
 
 void callback(char * topic, byte* payload, unsigned int length){
