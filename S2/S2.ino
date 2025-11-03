@@ -17,6 +17,8 @@ const String broker_PASS   = "Placa_2_Allyson";
 const String MyTopic  = "Allyson Schaedler Brinkerhoff";
 const String OtherTopic  = "Allyson Schaedler Brinkerhoff";
 
+const byte PONTE_H = 2;
+
 
 
 
@@ -64,45 +66,48 @@ void callback(char * topic, byte* payload, unsigned int length){
   Serial.print("Recebido: ");
   Serial.println(mensagem);
 
-   if(mensagem == "HIGH") {
-    Serial.println("Ligado e Conectado");
-    digitalWrite(2, HIGH);
-  } else {
-    Serial.println("Desligado e Fracasso");
-    digitalWrite(2, LOW);
+void setup() {
+  pinMode(PONTE_H, OUTPUT);
+  ledcWrite(PONTE_H, 255, 0);
+}
+
+void loop() {
+
+  for (int brilho = 0; brilho <= 255; brilho++) {
+    ledcWrite(PONTE_H, frente);
+    delay(10);
   }
-  digitalWrite(2, HIGH);
-  delay(1000);
-  digitalWrite(2, LOW);
-  delay(1000);
+  
+  // Diminui brilho gradualmente
+  for (int brilho = 255; brilho >= 0; brilho--) {
+    ledcWrite(PONTE_H, trás);
+    delay(10);
+  }
+}
+
 }
 
 
 //---------------------------------------------
-long lerDistancia() {
-  digitalWrite(TRIGGER_PIN, LOW);
-  delayMicroseconds(2);
-  digitalWrite(TRIGGER_PIN, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(TRIGGER_PIN, LOW);
-  
-  long duracao = pulseIn(ECHO_PIN, HIGH);
-  long distancia = duracao * 349.24 / 2 / 10000;
-  
-  return distancia;
+const byte PONTE_H = 2;
+
+void setup() {
+  pinMode(PONTE_H, OUTPUT);
+  ledcWrite(PONTE_H, 255, 0);
 }
 
-long distancia = lerDistancia();
-  
-  Serial.print("Distância: ");
-  Serial.print(distancia);
-  Serial.println(" cm");
-  
-  if (distancia < 10) {
-    Serial.println("Objeto próximo!");
+void loop() {
+
+  for (int brilho = 0; brilho <= 255; brilho++) {
+    ledcWrite(PONTE_H, frente);
+    delay(10);
   }
   
-  delay(500);
+  // Diminui brilho gradualmente
+  for (int brilho = 255; brilho >= 0; brilho--) {
+    ledcWrite(PONTE_H, trás);
+    delay(10);
+  }
 }
 
 
@@ -111,5 +116,4 @@ long distancia = lerDistancia();
   // S4 (TREM) minha parte - Allyson
   //DOIT ESP32 DEVKIT
   //PubSubClient
-
 
