@@ -78,6 +78,34 @@ void callback(char * topic, byte* payload, unsigned int length){
 }
 
 
+//---------------------------------------------
+long lerDistancia() {
+  digitalWrite(TRIGGER_PIN, LOW);
+  delayMicroseconds(2);
+  digitalWrite(TRIGGER_PIN, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(TRIGGER_PIN, LOW);
+  
+  long duracao = pulseIn(ECHO_PIN, HIGH);
+  long distancia = duracao * 349.24 / 2 / 10000;
+  
+  return distancia;
+}
+
+long distancia = lerDistancia();
+  
+  Serial.print("Distância: ");
+  Serial.print(distancia);
+  Serial.println(" cm");
+  
+  if (distancia < 10) {
+    Serial.println("Objeto próximo!");
+  }
+  
+  delay(500);
+}
+
+
 
   // put your main code here, to run repeatedly:
 
