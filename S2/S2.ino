@@ -80,7 +80,7 @@ void callback(char * topic, byte* payload, unsigned int length){
 
 
   // put your main code here, to run repeatedly:
-
+  // S4 (TREM) minha parte - Allyson
   //DOIT ESP32 DEVKIT
   //PubSubClient
 
