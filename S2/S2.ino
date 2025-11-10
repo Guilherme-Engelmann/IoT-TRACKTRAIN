@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 #include <WiFi.h>
 #include <WiFiClientSecure.h>
 #include <PubSubClient.h>
@@ -19,6 +20,29 @@ PubSubClient mqtt(espClient);
 const char* TOPICO_PRESENCA1 = "ferrorama/bloco1/presenca1";
 const char* TOPICO_PRESENCA2 = "ferrorama/bloco1/presenca2";
 const char* TOPICO_ILUMINACAO = "ferrorama/iluminacao";  // receber
+=======
+#include <WiFiClientSecure.h>
+#include <PubSubClient.h>
+
+WiFiClientSecure client;
+PubSubClient mqtt(client);
+
+const String SSID = "";
+const String PASS = "8120gv08";
+
+//constantes p/ broker
+const String URL    = "570f551f5406454bb50ec90a421ce6ae.s1.eu.hivemq.cloud";
+const int PORT      = "8883";
+const String USR    = "";
+const String broker_user   = "Placa_2_Allyson" ;
+const String broker_PASS   = "Placa_2_Allyson";
+
+const String MyTopic  = "Allyson Schaedler Brinkerhoff";
+const String OtherTopic  = "Allyson Schaedler Brinkerhoff";
+
+const byte PONTE_H = 2;
+
+>>>>>>> c12e100322b0d347412989500f955093cd2dfdee
 
 // ====== PINOS ======
 #define LED 2
@@ -58,6 +82,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
 // ====== CONFIGURAÇÃO INICIAL ======
 void setup() {
   Serial.begin(115200);
+<<<<<<< HEAD
   pinMode(LED, OUTPUT);
   pinMode(TRIG1, OUTPUT);
   pinMode(ECHO1, INPUT);
@@ -69,6 +94,23 @@ void setup() {
   WiFi.begin(SSID, PASS);
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
+=======
+  pinMode(2, OUTPUT);
+  Serial.println("Conectando ao WiFi");
+  WiFi.begin(SSID,PASS);
+  while(WiFi.status() != WL_CONNECTED){
+    Serial.println(".");
+    delay(200);
+  }
+  Serial.println("\nConectado com sucesso!");
+  Client.setinsecure();
+  Serial.println("Conectando ao Broker");
+  mqtt.setServer(URL.c_str(),PORT);
+  while(!mqtt.connected()){
+    String ID = "S2_";
+    ID += String(random(0xffff),HEX); //cria a parte aleat.
+    mqtt.connect(ID.c_str(),USR.c_str(),broker_PASS.c_str());
+>>>>>>> c12e100322b0d347412989500f955093cd2dfdee
     Serial.print(".");
   }
   Serial.println("\n Conectado ao Wi-Fi!");
@@ -110,10 +152,16 @@ void loop() {
   if (!mqtt.connected()) return;
 
   mqtt.loop();
+<<<<<<< HEAD
+=======
+  delay(2000);
+}
+>>>>>>> c12e100322b0d347412989500f955093cd2dfdee
 
   int dist1 = lerDistancia(TRIG1, ECHO1);
   int dist2 = lerDistancia(TRIG2, ECHO2);
 
+<<<<<<< HEAD
   // Publica presença 1
   if (dist1 < 10) {
     mqtt.publish(TOPICO_PRESENCA1, "Trem detectado em S1");
@@ -130,3 +178,56 @@ void loop() {
 
   delay(1000);
 }
+=======
+void setup() {
+  pinMode(PONTE_H, OUTPUT);
+  ledcWrite(PONTE_H, 255, 0);
+}
+
+void loop() {
+
+  for (int brilho = 0; brilho <= 255; brilho++) {
+    ledcWrite(PONTE_H, frente);
+    delay(10);
+  }
+  
+  // Diminui brilho gradualmente
+  for (int brilho = 255; brilho >= 0; brilho--) {
+    ledcWrite(PONTE_H, trás);
+    delay(10);
+  }
+}
+
+}
+
+
+//---------------------------------------------
+const byte PONTE_H = 2;
+
+void setup() {
+  pinMode(PONTE_H, OUTPUT);
+  ledcWrite(PONTE_H, 255, 0);
+}
+
+void loop() {
+
+  for (int brilho = 0; brilho <= 255; brilho++) {
+    ledcWrite(PONTE_H, frente);
+    delay(10);
+  }
+  
+  // Diminui brilho gradualmente
+  for (int brilho = 255; brilho >= 0; brilho--) {
+    ledcWrite(PONTE_H, trás);
+    delay(10);
+  }
+}
+
+
+
+  // put your main code here, to run repeatedly:
+  // S4 (TREM) minha parte - Allyson
+  //DOIT ESP32 DEVKIT
+  //PubSubClient
+
+>>>>>>> c12e100322b0d347412989500f955093cd2dfdee
