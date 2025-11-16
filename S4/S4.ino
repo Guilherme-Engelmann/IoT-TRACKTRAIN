@@ -57,22 +57,22 @@ void loop() {
   delay(10);
 }
 
-
-
-void callback(char* topic, byte* payload, usigned int length) {
-  string msg = "";
+void callback(char* topic, byte* payload, unsigned int length) {
+  String msg = "";
   for (int i = 0; i < length; i++) {
-    msg += (char)payload[i]
+    msg += (char)payload[i];
   }
   int velocidade = msg.toInt();
-  if (strcmp(topic, topico_velocidade) == 0 && velocidade > 0) {
-    ///Controlar os motores frente
-  }
-  else if (strcmp(topic, topico_velocidade) == 0 && velocidade < 0) {
-    ///Controlar os motores tras
-  }
-  else if (strcmp(topic, topico_velocidade) == 0 && velocidade == 0) {
-    ///Controlar os motores parar
+  
+  if (strcmp(topic, topico_velocidade) == 0) {
+    if (velocidade > 0) {
+      // Controlar os motores frente
+    }
+    else if (velocidade < 0) {
+      // Controlar os motores tras
+    }
+    else if (velocidade == 0) {
+      // Controlar os motores parar
+    }
   }
 }
-
