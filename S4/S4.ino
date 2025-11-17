@@ -5,16 +5,16 @@
 WiFiClientSecure client;
 PubSubClient mqtt(client);
 
-const String SSWIFI_SSIDID = "";
+const String SSWIFI_SSIDID = "FIESC_IOT_EDU";
 const String WIFI_PASS = "8120gv08";
 const String BoardID = "s4";
 
 //constantes p/ broker
-const char* URL    = "570f551f5406454bb50ec90a421ce6ae.s1.eu.hivemq.cloud";
+const char* URL    = "698831f5fdc44389a1d45db0951f0e8d.s1.eu.hivemq.cloud";
 const int PORT      = 8883;
 const char* USR    = "";
-const char* broker_user   = "Placa_4_Allyson" ;
-const char* broker_PASS   = "Placa_4_Allyson";
+const char* broker_user   = "allyson_brinkerhoff" ;
+const char* broker_PASS   = "AllysonGo1";
 
 const char* MyTopic  = "Allyson Schaedler Brinkerhoff";
 const char* OtherTopic  = "Allyson Schaedler Brinkerhoff";
@@ -26,6 +26,9 @@ const char* topico_velocidade = "velocidade";  // receber
 
 void setup() {
   Serial.begin(115200);
+  client.setInsecure();
+  pinMode(LED_G,OUTPUT);
+  pinMode(LED_R,OUTPUT);
   Serial.println("Conectando ao WiFi"); //apresenta a mensagem na tela
   WiFi.begin(SSWIFI_SSIDID,WIFI_PASS); //tenta conectar na rede
   while(WiFi.status() != WL_CONNECTED){
@@ -50,6 +53,7 @@ void setup() {
   }
 
   mqtt.subscribe(topico_velocidade);
+  mqtt.setCallback(callback);
   Serial.println("\nConectado ao Broker!");
 }
 
@@ -66,6 +70,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
   }
   int velocidade = msg.toInt();
   
+  Serial.println(velocidade);
   if (strcmp(topic, topico_velocidade) == 0) {
     if (velocidade > 0) {
       digitalWrite(21, HIGH);  // Liga LED
