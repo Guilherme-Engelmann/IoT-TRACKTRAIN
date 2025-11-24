@@ -88,6 +88,17 @@ long medirDistancia() {
   return distancia;
 }
 
+/*
+Publica presença do PIR
+
+Publica distância do ultrassom
+
+Recebe comandos para acender/apagar LED
+
+Recebe comandos para movimentar servos
+
+*/
+
 // ------------------ FUNÇÃO: CALLBACK MQTT ------------------
 void callback(char* topic, byte* payload, unsigned int length) {
   String msg = "";
@@ -118,6 +129,10 @@ void callback(char* topic, byte* payload, unsigned int length) {
   }
 }
 
+/*
+Serve para enviar a leitura do sensor de presença a cada 3 segundos.
+*/
+
 // ------------------ WIFI ------------------
 void conectarWiFi() {
   WiFi.begin(SSID, PASS);
@@ -130,6 +145,16 @@ void conectarWiFi() {
 
   Serial.println("\nWi-Fi conectado!");
 }
+
+/*
+Envia um pulso HIGH de 10 µs → isso aciona o ultrassom.
+
+O sensor envia ondas sonoras.
+
+pulseIn() mede quanto tempo demorou para as ondas voltarem.
+
+O cálculo converte tempo em distância (cm).
+*/
 
 // ------------------ MQTT ------------------
 void conectarMQTT() {
@@ -156,6 +181,10 @@ void conectarMQTT() {
   }
 }
 
+/*
+Fica preso no loop até realmente conectar à rede.
+*/
+
 // ------------------ SETUP ------------------
 void setup() {
   Serial.begin(115200);
@@ -174,6 +203,11 @@ void setup() {
   conectarWiFi();
   conectarMQTT();
 }
+
+/*
+De 1 em 1 segundo ele tenta conectar.
+Quando conecta → assina todos os tópicos necessários.
+*/
 
 // ------------------ LOOP PRINCIPAL ------------------
 void loop() {
@@ -202,3 +236,6 @@ void loop() {
 
   delay(20);
 }
+
+/*
+Isso evita travamentos por excesso de loop.*/
