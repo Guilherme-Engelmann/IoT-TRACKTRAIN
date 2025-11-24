@@ -3,6 +3,13 @@
 #include <WiFi.h>
 #include <ESP32Servo.h>
 
+
+/*WiFi.h → permite conectar o ESP32 à rede Wi-Fi.
+
+WiFiClientSecure.h → permite conexões seguras (TLS/SSL), necessárias para o HiveMQ Cloud.
+
+PubSubClient.h → implementa o protocolo MQTT (publicar e assinar tópicos).
+  */
 // ------------------ PINOS ------------------
 #define PINO_LED 2
 #define TRIG_PIN 26
@@ -11,21 +18,46 @@
 #define SERVO2_PIN 18
 #define SENSOR_PRESENCA 14
 
+
+/*
+Pino	Função
+2	LED
+26	Trigger do ultrassom (envia pulso)
+25	Echo do ultrassom (recebe pulso)
+19	Servo motor 1
+18	Servo motor 2
+14	Sensor PIR de presença
+*/
+
 // ------------------ OBJETOS ------------------
 WiFiClientSecure client;
 PubSubClient mqtt(client);
 Servo servoA;
 Servo servoB;
 
+/*
+client → responsável pela comunicação segura.
+
+mqtt → cliente MQTT que usa o cliente seguro.
+
+servo3/servo4 → instâncias que controlam servos.
+*/
+
 // ------------------ WIFI ------------------
 const char* SSID = "FIESC_IOT_EDU";
 const char* PASS = "8120gv08";
 
+/*
+const char* SSID = "FIESC_IOT_EDU";
+const char* PASS = "8120gv08";
+São usados mais tarde para conectar à rede.
+*/
+
 // ------------------ MQTT ------------------
-const char* BROKER_URL  = "810a9479164b4b4d81ba1c4879369294.s1.eu.hivemq.cloud";
+const char* BROKER_URL  = "698831f5fdc44389a1d45db0951f0e8d.s1.eu.hivemq.cloud";
 const int   BROKER_PORT = 8883;
-const char* BROKER_USER = "Placa_3";
-const char* BROKER_PASS = "Placa123";
+const char* BROKER_USER = "Polzin_s3";
+const char* BROKER_PASS = "polzin2020";
 
 const char* TOPIC_PUBLISH_PRESENCA = "Projeto_S3/Presenca3";
 const char* TOPIC_PUBLISH_ULTRA1   = "Projeto_S3/Ultrassom1";
@@ -38,6 +70,8 @@ const char* TOPIC_SERVO2 = "Projeto_S2/Distancia2";
 // Timer para publicação
 unsigned long lastPublish = 0;
 const int publishInterval = 3000;
+
+
 
 // ------------------ FUNÇÃO: ULTRASSOM ------------------
 long medirDistancia() {
