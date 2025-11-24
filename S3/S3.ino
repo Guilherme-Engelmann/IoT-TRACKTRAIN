@@ -1,171 +1,170 @@
-#include <WiFi.h>
+#include <WiFiClientSecure.h>
 #include <PubSubClient.h>
-#include <DHT.h>
+#include <WiFi.h>
+#include <ESP32Servo.h>
 
-// -------------------------
-// CONFIGURAÇÃO DE REDE
-// -------------------------
-const char* ssid     = "SEU_WIFI";
-const char* password = "SENHA_WIFI";
+// ------------------ PINOS ------------------
+#define PINO_LED 2
+#define TRIG_PIN 26
+#define ECHO_PIN 25
+#define SERVO1_PIN 19
+#define SERVO2_PIN 18
+#define SENSOR_PRESENCA 14
 
-const char* mqttServer = "test.mosquitto.org";
-int mqttPort = 1883;
+// ------------------ OBJETOS ------------------
+WiFiClientSecure client;
+PubSubClient mqtt(client);
+Servo servoA;
+Servo servoB;
 
-// -------------------------
-// DEFINIÇÃO DE PINOS
-// -------------------------
-#define DHTPIN 4
-#define DHTTYPE DHT11
+// ------------------ WIFI ------------------
+const char* SSID = "FIESC_IOT_EDU";
+const char* PASS = "8120gv08";
 
-#define TRIG_PIN 22
-#define ECHO_PIN 23
+// ------------------ MQTT ------------------
+const char* BROKER_URL  = "810a9479164b4b4d81ba1c4879369294.s1.eu.hivemq.cloud";
+const int   BROKER_PORT = 8883;
+const char* BROKER_USER = "Placa_3";
+const char* BROKER_PASS = "Placa123";
 
-#define LED_ILUMINACAO 19
+const char* TOPIC_PUBLISH_PRESENCA = "Projeto_S3/Presenca3";
+const char* TOPIC_PUBLISH_ULTRA1   = "Projeto_S3/Ultrassom1";
+const char* TOPIC_PUBLISH_ULTRA2   = "Projeto_S3/Ultrassom2";
 
-#define LDR_PIN 34
+const char* TOPIC_LED_CONTROL = "S1/iluminacao";
+const char* TOPIC_SERVO1 = "Projeto_S2/Distancia1";
+const char* TOPIC_SERVO2 = "Projeto_S2/Distancia2";
 
-#define RGB_R 14
-#define RGB_G 26
-#define RGB_B 25
+// Timer para publicação
+unsigned long lastPublish = 0;
+const int publishInterval = 3000;
 
-// -------------------------
-DHT dht(DHTPIN, DHTTYPE);
-WiFiClient espClient;
-PubSubClient client(espClient);
+// ------------------ FUNÇÃO: ULTRASSOM ------------------
+long medirDistancia() {
+  digitalWrite(TRIG_PIN, LOW);
+  delayMicroseconds(3);
+  digitalWrite(TRIG_PIN, HIGH);
+  delayMicroseconds(12);
+  digitalWrite(TRIG_PIN, LOW);
 
-// -------------------------
-// FUNÇÃO RGB
-// -------------------------
-void rgb(int r, int g, int b){
-  analogWrite(RGB_R, r);
-  analogWrite(RGB_G, g);
-  analogWrite(RGB_B, b);
+  long duracao = pulseIn(ECHO_PIN, HIGH, 25000);
+  if (duracao == 0) return -1; // leitura inválida
+
+  long distancia = (duracao * 0.0343) / 2;
+  return distancia;
 }
 
-// -------------------------
-// CONECTAR WIFI
-// -------------------------
-void conectarWiFi() {
-  Serial.print("Conectando ao WiFi...");
-  WiFi.begin(ssid, password);
+// ------------------ FUNÇÃO: CALLBACK MQTT ------------------
+void callback(char* topic, byte* payload, unsigned int length) {
+  String msg = "";
+  for (int i = 0; i < length; i++) msg += (char)payload[i];
 
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
+  Serial.print("Mensagem recebida em ");
+  Serial.print(topic);
+  Serial.print(": ");
+  Serial.println(msg);
+
+  // Controle do LED
+  if (String(topic) == TOPIC_LED_CONTROL) {
+    if (msg == "acender") {
+      digitalWrite(PINO_LED, HIGH);
+    } else if (msg == "apagar") {
+      digitalWrite(PINO_LED, LOW);
+    }
   }
 
-  Serial.println("\nWiFi conectado!");
-  rgb(0,50,0); // Verde: conectado
+  // Controle servo 1
+  if (String(topic) == TOPIC_SERVO1) {
+    servoA.write(msg == "objeto_proximo" ? 90 : 45);
+  }
+
+  // Controle servo 2
+  if (String(topic) == TOPIC_SERVO2) {
+    servoB.write(msg == "objeto_proximo" ? 90 : 45);
+  }
 }
 
-// -------------------------
-// CONECTAR MQTT
-// -------------------------
+// ------------------ WIFI ------------------
+void conectarWiFi() {
+  WiFi.begin(SSID, PASS);
+  Serial.print("Conectando ao Wi-Fi");
+
+  while (WiFi.status() != WL_CONNECTED) {
+    Serial.print(".");
+    delay(350);
+  }
+
+  Serial.println("\nWi-Fi conectado!");
+}
+
+// ------------------ MQTT ------------------
 void conectarMQTT() {
-  while (!client.connected()) {
-    Serial.print("Conectando ao MQTT...");
-    if (client.connect("S1_Station")) {
-      Serial.println("Conectado!");
-      rgb(0,0,50); // Azul: conectado ao broker
-    } else {
-      Serial.print("Falha. Erro: ");
-      Serial.println(client.state());
-      rgb(50,0,0); // vermelho: erro
-      delay(2000);
+  mqtt.setServer(BROKER_URL, BROKER_PORT);
+  client.setInsecure();
+  mqtt.setCallback(callback);
+
+  Serial.println("Conectando ao MQTT...");
+
+  while (!mqtt.connected()) {
+    String clientId = "S3_" + String(random(0xffff), HEX);
+
+    if (mqtt.connect(clientId.c_str(), BROKER_USER, BROKER_PASS)) {
+      Serial.println("Conectado ao broker!");
+
+      mqtt.subscribe(TOPIC_LED_CONTROL);
+      mqtt.subscribe(TOPIC_SERVO1);
+      mqtt.subscribe(TOPIC_SERVO2);
+    } 
+    else {
+      Serial.println("Falha ao conectar. Tentando novamente...");
+      delay(1200);
     }
   }
 }
 
-// -------------------------
-// LEITURA DO ULTRASSOM
-// -------------------------
-int lerPresenca(){
-  digitalWrite(TRIG_PIN, LOW);
-  delayMicroseconds(5);
-  digitalWrite(TRIG_PIN, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(TRIG_PIN, LOW);
-
-  long duration = pulseIn(ECHO_PIN, HIGH);
-  int distance = duration * 0.034 / 2;
-
-  if(distance > 0 && distance < 20){
-    return 1;   // TEM ALGO PERTO
-  } else {
-    return 0;
-  }
-}
-
-// -------------------------
-// SETUP
-// -------------------------
+// ------------------ SETUP ------------------
 void setup() {
   Serial.begin(115200);
 
+  pinMode(PINO_LED, OUTPUT);
+  pinMode(SENSOR_PRESENCA, INPUT);
   pinMode(TRIG_PIN, OUTPUT);
   pinMode(ECHO_PIN, INPUT);
 
-  pinMode(LED_ILUMINACAO, OUTPUT);
+  servoA.attach(SERVO1_PIN);
+  servoB.attach(SERVO2_PIN);
 
-  pinMode(RGB_R, OUTPUT);
-  pinMode(RGB_G, OUTPUT);
-  pinMode(RGB_B, OUTPUT);
-
-  dht.begin();
+  servoA.write(0);
+  servoB.write(0);
 
   conectarWiFi();
-  client.setServer(mqttServer, mqttPort);
-
   conectarMQTT();
 }
 
-// -------------------------
-// LOOP PRINCIPAL
-// -------------------------
+// ------------------ LOOP PRINCIPAL ------------------
 void loop() {
+  if (!mqtt.connected()) conectarMQTT();
+  mqtt.loop();
 
-  // Reconectar MQTT se cair
-  if (!client.connected()) conectarMQTT();
-  client.loop();
+  // ULTRASSOM
+  long distancia = medirDistancia();
+  Serial.print("Distância: ");
+  Serial.println(distancia);
 
-  // -------- TEMPERATURA e UMIDADE --------
-  float temperatura = dht.readTemperature();
-  float umidade = dht.readHumidity();
-
-  if (!isnan(temperatura)){
-    String tempStr = String(temperatura);
-    client.publish("no1/temperatura", tempStr.c_str());
+  if (distancia > 0 && distancia < 10) {
+    mqtt.publish(TOPIC_PUBLISH_ULTRA1, "objeto_proximo");
+  } else if (distancia >= 10) {
+    mqtt.publish(TOPIC_PUBLISH_ULTRA2, "objeto_longe");
   }
 
-  if (!isnan(umidade)){
-    String umiStr = String(umidade);
-    client.publish("no1/umidade", umiStr.c_str());
+  // PRESENÇA (a cada 3 segundos)
+  unsigned long agora = millis();
+  if (agora - lastPublish >= publishInterval) {
+    lastPublish = agora;
+    int presenca = digitalRead(SENSOR_PRESENCA);
+
+    mqtt.publish(TOPIC_PUBLISH_PRESENCA, String(presenca).c_str());
   }
 
-  // -------- LUMINOSIDADE (LDR) --------
-  int ldr = analogRead(LDR_PIN);
-  String estadoLuz;
-
-  if(ldr < 2000){
-    estadoLuz = "escuro";
-    digitalWrite(LED_ILUMINACAO, HIGH);   // acende LED
-  } else {
-    estadoLuz = "claro";
-    digitalWrite(LED_ILUMINACAO, LOW);    // apaga LED
-  }
-
-  client.publish("no1/luminosidade", estadoLuz.c_str());
-
-  // -------- PRESENÇA (ULTRASSOM) --------
-  int presenca = lerPresenca();
-  client.publish("no1/presenca", String(presenca).c_str());
-
-  // Status visual simples no LED RGB
-  if(presenca == 1){
-    rgb(50,0,0); // vermelho = presença
-  } else {
-    rgb(0,0,20); // azul fraco = normal
-  }
-
-  delay(1500); // intervalo entre leituras
+  delay(20);
 }
