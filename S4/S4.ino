@@ -95,3 +95,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
     }
   }
 }
+
+// O código transforma o ESP32 em um controlador para o trem do Ferrorama, conectando-o ao Wi-Fi e a um servidor MQTT. 
+// O ESP32 se inscreve no tópico "velocidade" para receber comandos de movimento. 
+// A função callback() processa os dados, e o programa é dividido em configuração inicial e um loop para comunicação contínua.
