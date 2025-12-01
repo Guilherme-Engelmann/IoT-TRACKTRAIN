@@ -34,6 +34,10 @@ void setup() {
   while(WiFi.status() != WL_CONNECTED){
     Serial.print("."); // mostra "....."
     delay(200);
+    
+  // O código transforma o ESP32 em um controlador para o trem do Ferrorama, conectando-o ao Wi-Fi e a um servidor MQTT. 
+  // O ESP32 se inscreve no tópico "velocidade" para receber comandos de movimento. 
+  // A função callback() processa os dados, e o programa é dividido em configuração inicial e um loop para comunicação contínua.
   }
   Serial.println("\nConectado com Sucesso!");
 
@@ -92,10 +96,12 @@ void callback(char* topic, byte* payload, unsigned int length) {
       digitalWrite(18, LOW);  // Liga LED
       delay(1000);
       // Controlar os motores parar
+
+      // Se a velocidade for positiva, o robô vai para frente, acendendo o LED no pino 21 e apagando o no pino 18. 
+      // Se a velocidade for negativa, o robô vai para trás, acendendo o LED no pino 18. Se a velocidade for zero, ambos os LEDs são apagados. 
+      // Há comentários em português para indicar onde controlar os motores do robô.
     }
   }
 }
 
-// O código transforma o ESP32 em um controlador para o trem do Ferrorama, conectando-o ao Wi-Fi e a um servidor MQTT. 
-// O ESP32 se inscreve no tópico "velocidade" para receber comandos de movimento. 
-// A função callback() processa os dados, e o programa é dividido em configuração inicial e um loop para comunicação contínua.
+
